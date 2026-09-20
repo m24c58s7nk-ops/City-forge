@@ -1,11 +1,170 @@
 import * as THREE from 'three';
 import './style.css';
-const app=document.querySelector('#app');app.innerHTML=`<div id="hud"><strong>CITYFORGE</strong><span>Money: $<b id="money">500</b></span><span>Population: <b id="population">0</b></span></div><div id="hint">WASD or joystick to move · Drag the right side to look · Pinch to zoom</div><div id="joystick"><div id="joystick-knob"></div></div>`;
-let money=500,population=0;const moneyEl=document.querySelector('#money'),populationEl=document.querySelector('#population');const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd3f5);scene.fog=new THREE.Fog(0x9bd3f5,35,90);const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,200);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;app.appendChild(renderer.domElement);scene.add(new THREE.HemisphereLight(0xffffff,0x668866,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(10,20,10);sun.castShadow=true;scene.add(sun);
-const colliders=[];function box(x,y,z,w,h,d,color,solid=false,parent=scene){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(solid)colliders.push({x,z,w,d});return m;}function label(text,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=128;const ctx=c.getContext('2d');ctx.fillStyle='#172033';ctx.fillRect(6,6,500,116);ctx.strokeStyle='#ffd166';ctx.lineWidth=6;ctx.strokeRect(6,6,500,116);ctx.fillStyle='white';ctx.font='bold 42px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,64);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));s.position.set(x,y,z);s.scale.set(4.5,1.12,1);scene.add(s);return s;}
-box(0,-.5,0,45,1,45,0x5f9b55);box(0,.05,0,9,.1,45,0x555b63);box(0,.06,0,45,.1,9,0x555b63);box(0,2,0,7,4,6,0xd9d1bd,true);box(0,4.5,0,8,1,7,0x9c4939,true);box(0,6,0,1.3,2,1.3,0x9c4939,true);
-function makeCharacter(){const g=new THREE.Group();g.position.set(0,0,10);scene.add(g);const add=(geo,p,c)=>{const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:c}));m.position.set(...p);m.castShadow=true;g.add(m);return m};add(new THREE.CapsuleGeometry(.48,.75,6,12),[0,1.25,0],0x2f65d9);add(new THREE.SphereGeometry(.43,16,12),[0,2.25,0],0xf2c29b);add(new THREE.SphereGeometry(.46,16,8),[0,2.4,0],0x3b241b);return g}const player=makeCharacter(),pads=[];
-function buildMarket(){const g=new THREE.Group();g.position.set(-8,0,-5);scene.add(g);box(0,1.6,0,5,3.2,3.6,0xc77b3e,false,g);box(0,3.55,0,5.6,1.25,4.2,0x7b3828,false,g);const roof=new THREE.Mesh(new THREE.ConeGeometry(3.7,1.5,4),new THREE.MeshStandardMaterial({color:0x9e4935}));roof.position.y=4.5;roof.rotation.y=Math.PI/4;roof.castShadow=true;g.add(roof);box(0,2,-1.85,2.2,1.4,.12,0x5a3426,false,g);for(const x of [-1.5,1.5]){box(x,2.25,-1.87,.85,.9,.12,0x9ed8e8,false,g);box(x,1.1,-1.95,.7,.7,.7,0xb87838,false,g)}box(0,2.9,-2.05,5.3,.18,.8,0xf2c94c,false,g);box(-2.3,2.1,-2.05,.18,1.8,.18,0x6b351f,false,g);box(2.3,2.1,-2.05,.18,1.8,.18,0x6b351f,false,g);label('MARKET STALL',-8,5.9,-5);population+=2;populationEl.textContent=population;}
-function buildBakery(){const g=new THREE.Group();g.position.set(8,0,-5);scene.add(g);box(0,2,0,5.5,4,4.5,0xf0d6a5,false,g);const roof=new THREE.Mesh(new THREE.ConeGeometry(4.2,1.8,4),new THREE.MeshStandardMaterial({color:0xb65c42}));roof.position.y=4.9;roof.rotation.y=Math.PI/4;roof.castShadow=true;g.add(roof);box(1.55,5.8,.5,.7,1.8,.7,0x8b6655,false,g);box(0,1.35,-2.3,1.4,1.3,.15,0x7a432c,false,g);for(const x of [-1.6,1.6]){box(x,2.35,-2.28,1.25,1.4,.12,0x75b9d6,false,g);box(x,1.25,-2.4,1.5,.18,.3,0x7c4a2d,false,g)}box(0,3.25,-2.35,4.7,.22,.65,0xf2c94c,false,g);label('BAKERY',8,6.4,-5);population+=4;populationEl.textContent=population;}
-function sign(t,c,i){const cv=document.createElement('canvas');cv.width=512;cv.height=256;const x=cv.getContext('2d');x.fillStyle='#172033';x.fillRect(8,8,496,240);x.strokeStyle='#ffd166';x.lineWidth=8;x.strokeRect(8,8,496,240);x.textAlign='center';x.font='80px Arial';x.fillStyle='#ffd166';x.fillText(i,80,105);x.font='bold 42px Arial';x.fillStyle='white';x.fillText(t,300,88);x.font='bold 48px Arial';x.fillStyle='#7df2a5';x.fillText('$'+c,300,160);const m=new THREE.Mesh(new THREE.PlaneGeometry(2.8,1.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,side:THREE.DoubleSide}));m.position.y=2.6;m.userData.billboard=true;return m}function createPad(x,z,t,c,i,a){const p=box(x,.18,z,3,.25,3,0xf2c94c);p.userData={cost:c,action:a,built:false};p.add(sign(t,c,i));pads.push(p)}createPad(-8,-5,'Market Stall',100,'🛒',buildMarket);createPad(8,-5,'Bakery',250,'🥖',buildBakery);
-const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);let yaw=.65,pitch=.65,distance=20;function blocked(x,z){return colliders.some(c=>Math.abs(x-c.x)<c.w/2+.65&&Math.abs(z-c.z)<c.d/2+.65)}function cameraFollow(){const t=new THREE.Vector3(player.position.x,1.2,player.position.z),h=Math.cos(pitch)*distance;camera.position.lerp(new THREE.Vector3(t.x+Math.sin(yaw)*h,t.y+Math.sin(pitch)*distance,t.z+Math.cos(yaw)*h),.18);camera.lookAt(t);pads.forEach(p=>p.children[0]?.lookAt(camera.position))}let last=performance.now();function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;let r=(keys.d?1:0)-(keys.a?1:0),f=(keys.w?1:0)-(keys.s?1:0);const l=Math.hypot(r,f)||1;r/=l;f/=l;const mx=r*Math.cos(yaw)-f*Math.sin(yaw),mz=-r*Math.sin(yaw)-f*Math.cos(yaw),nx=player.position.x+mx*7*dt,nz=player.position.z+mz*7*dt;if(!blocked(nx,nz)){player.position.x=nx;player.position.z=nz}if(r!==0||f!==0)player.rotation.y=Math.atan2(mx,mz);cameraFollow();pads.forEach(p=>{if(!p.userData.built&&player.position.distanceTo(p.position)<2.2&&money>=p.userData.cost){money-=p.userData.cost;moneyEl.textContent=money;p.userData.built=true;p.material.color.set(0x55bb77);p.userData.action()}});renderer.render(scene,camera)}requestAnimationFrame(animate);setInterval(()=>{money+=population*2;moneyEl.textContent=money},1000);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+const app = document.querySelector('#app');
+app.innerHTML = `<div id="hud"><strong>CITYFORGE</strong><span>Money: $<b id="money">500</b></span><span>Population: <b id="population">0</b></span></div><div id="hint">WASD or joystick to move</div><div id="joystick"><div id="joystick-knob"></div></div>`;
+
+let money = 500, population = 0;
+const moneyEl = document.querySelector('#money');
+const populationEl = document.querySelector('#population');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9bd3f5);
+scene.fog = new THREE.Fog(0x9bd3f5, 35, 90);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 200);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+app.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x668866, 2));
+const sun = new THREE.DirectionalLight(0xffffff, 2);
+sun.position.set(10, 20, 10);
+sun.castShadow = true;
+scene.add(sun);
+
+const colliders = [];
+function box(x, y, z, w, h, d, color, solid = false, parent = scene) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color }));
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  if (solid) colliders.push({ x, z, w, d });
+  return mesh;
+}
+
+box(0, -0.5, 0, 45, 1, 45, 0x5f9b55);
+box(0, 0.05, 0, 9, 0.1, 45, 0x555b63);
+box(0, 0.06, 0, 45, 0.1, 9, 0x555b63);
+box(0, 2, 0, 7, 4, 6, 0xd9d1bd, true);
+box(0, 4.5, 0, 8, 1, 7, 0x9c4939, true);
+box(0, 6, 0, 1.3, 2, 1.3, 0x9c4939, true);
+
+function makeCharacter() {
+  const group = new THREE.Group();
+  group.position.set(0, 0, 10);
+  scene.add(group);
+  const add = (geometry, position, color) => {
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color }));
+    mesh.position.set(...position);
+    mesh.castShadow = true;
+    group.add(mesh);
+  };
+  add(new THREE.CapsuleGeometry(0.48, 0.75, 6, 12), [0, 1.25, 0], 0x2f65d9);
+  add(new THREE.SphereGeometry(0.43, 16, 12), [0, 2.25, 0], 0xf2c29b);
+  add(new THREE.SphereGeometry(0.46, 16, 8), [0, 2.4, 0], 0x3b241b);
+  return group;
+}
+
+const player = makeCharacter();
+
+const keys = {};
+addEventListener('keydown', event => keys[event.key.toLowerCase()] = true);
+addEventListener('keyup', event => keys[event.key.toLowerCase()] = false);
+
+const joystick = document.querySelector('#joystick');
+const knob = document.querySelector('#joystick-knob');
+let joystickX = 0;
+let joystickY = 0;
+let joystickActive = false;
+let joystickPointerId = null;
+
+function updateJoystick(event) {
+  const rect = joystick.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  let dx = event.clientX - centerX;
+  let dy = event.clientY - centerY;
+  const max = rect.width * 0.34;
+  const distance = Math.hypot(dx, dy);
+  if (distance > max) {
+    dx = dx / distance * max;
+    dy = dy / distance * max;
+  }
+  joystickX = dx / max;
+  joystickY = dy / max;
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+}
+
+joystick.addEventListener('pointerdown', event => {
+  joystickActive = true;
+  joystickPointerId = event.pointerId;
+  joystick.setPointerCapture(event.pointerId);
+  updateJoystick(event);
+});
+joystick.addEventListener('pointermove', event => {
+  if (joystickActive && event.pointerId === joystickPointerId) updateJoystick(event);
+});
+function releaseJoystick(event) {
+  if (event.pointerId !== joystickPointerId) return;
+  joystickActive = false;
+  joystickPointerId = null;
+  joystickX = 0;
+  joystickY = 0;
+  knob.style.transform = 'translate(0px, 0px)';
+}
+joystick.addEventListener('pointerup', releaseJoystick);
+joystick.addEventListener('pointercancel', releaseJoystick);
+joystick.addEventListener('lostpointercapture', () => {
+  joystickActive = false;
+  joystickX = 0;
+  joystickY = 0;
+  knob.style.transform = 'translate(0px, 0px)';
+});
+
+let yaw = 0.65;
+let pitch = 0.65;
+let distance = 20;
+
+function blocked(x, z) {
+  return colliders.some(c => Math.abs(x - c.x) < c.w / 2 + 0.65 && Math.abs(z - c.z) < c.d / 2 + 0.65);
+}
+
+function cameraFollow() {
+  const target = new THREE.Vector3(player.position.x, 1.2, player.position.z);
+  const horizontal = Math.cos(pitch) * distance;
+  camera.position.lerp(new THREE.Vector3(target.x + Math.sin(yaw) * horizontal, target.y + Math.sin(pitch) * distance, target.z + Math.cos(yaw) * horizontal), 0.18);
+  camera.lookAt(target);
+}
+
+let last = performance.now();
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+
+  let right = (keys.d ? 1 : 0) - (keys.a ? 1 : 0) + joystickX;
+  let forward = (keys.w ? 1 : 0) - (keys.s ? 1 : 0) - joystickY;
+  const length = Math.hypot(right, forward) || 1;
+  right /= length;
+  forward /= length;
+
+  const moveX = right * Math.cos(yaw) - forward * Math.sin(yaw);
+  const moveZ = -right * Math.sin(yaw) - forward * Math.cos(yaw);
+  const nextX = player.position.x + moveX * 7 * dt;
+  const nextZ = player.position.z + moveZ * 7 * dt;
+
+  if (!blocked(nextX, nextZ)) {
+    player.position.x = nextX;
+    player.position.z = nextZ;
+  }
+  if (right !== 0 || forward !== 0) player.rotation.y = Math.atan2(moveX, moveZ);
+
+  cameraFollow();
+  renderer.render(scene, camera);
+}
+
+requestAnimationFrame(animate);
+
+setInterval(() => {
+  money += population * 2;
+  moneyEl.textContent = money;
+}, 1000);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
