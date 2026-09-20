@@ -17,7 +17,6 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9bd3f5);
 scene.fog = new THREE.Fog(0x9bd3f5, 35, 90);
 const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 200);
-camera.position.set(12, 12, 16);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
@@ -55,7 +54,6 @@ addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 let joystickX = 0, joystickY = 0, joystickActive = false, joystickPointer = null;
 const joystick = document.querySelector('#joystick');
 const knob = document.querySelector('#joystick-knob');
-
 function updateJoystick(clientX, clientY) {
   const rect = joystick.getBoundingClientRect();
   const max = rect.width * 0.32;
@@ -63,30 +61,40 @@ function updateJoystick(clientX, clientY) {
   let y = clientY - (rect.top + rect.height / 2);
   const length = Math.hypot(x, y);
   if (length > max) { x = x / length * max; y = y / length * max; }
-  joystickX = x / max;
-  joystickY = y / max;
+  joystickX = x / max; joystickY = y / max;
   knob.style.transform = `translate(${x}px, ${y}px)`;
 }
+joystick.addEventListener('pointerdown', e => { joystickActive = true; joystickPointer = e.pointerId; joystick.setPointerCapture(e.pointerId); updateJoystick(e.clientX, e.clientY); e.preventDefault(); });
+joystick.addEventListener('pointermove', e => { if (joystickActive && e.pointerId === joystickPointer) updateJoystick(e.clientX, e.clientY); e.preventDefault(); });
+function releaseJoystick(e) { if (e.pointerId === joystickPointer) { joystickActive = false; joystickPointer = null; joystickX = 0; joystickY = 0; knob.style.transform = 'translate(0, 0)'; } }
+joystick.addEventListener('pointerup', releaseJoystick); joystick.addEventListener('pointercancel', releaseJoystick);
 
-joystick.addEventListener('pointerdown', e => {
-  joystickActive = true;
-  joystickPointer = e.pointerId;
-  joystick.setPointerCapture(e.pointerId);
-  updateJoystick(e.clientX, e.clientY);
-  e.preventDefault();
-});
-joystick.addEventListener('pointermove', e => {
-  if (joystickActive && e.pointerId === joystickPointer) updateJoystick(e.clientX, e.clientY);
-  e.preventDefault();
-});
-function releaseJoystick(e) {
-  if (e.pointerId === joystickPointer) {
-    joystickActive = false; joystickPointer = null; joystickX = 0; joystickY = 0;
-    knob.style.transform = 'translate(0, 0)';
+// Camera collision avoidance: move the camera closer when a building blocks the player.
+const cameraTarget = new THREE.Vector3();
+const desiredCamera = new THREE.Vector3();
+const cameraDirection = new THREE.Vector3();
+const cameraRaycaster = new THREE.Raycaster();
+const cameraObstacles = [];
+function registerObstacle(mesh) { cameraObstacles.push(mesh); return mesh; }
+
+// Register the Town Hall and future buildings as camera obstacles.
+scene.traverse(obj => { if (obj.isMesh && obj !== player) cameraObstacles.push(obj); });
+function updateCamera() {
+  cameraTarget.set(player.position.x, 1.1, player.position.z);
+  desiredCamera.set(player.position.x + 12, 12, player.position.z + 16);
+  cameraDirection.subVectors(desiredCamera, cameraTarget);
+  const distance = cameraDirection.length();
+  cameraDirection.normalize();
+  cameraRaycaster.set(cameraTarget, cameraDirection);
+  cameraRaycaster.far = distance;
+  const hits = cameraRaycaster.intersectObjects(cameraObstacles, false);
+  if (hits.length > 0) {
+    const safeDistance = Math.max(3.5, hits[0].distance - 1.2);
+    desiredCamera.copy(cameraTarget).addScaledVector(cameraDirection, safeDistance);
   }
+  camera.position.lerp(desiredCamera, 0.12);
+  camera.lookAt(cameraTarget);
 }
-joystick.addEventListener('pointerup', releaseJoystick);
-joystick.addEventListener('pointercancel', releaseJoystick);
 
 let last = performance.now();
 function animate(now) {
@@ -97,9 +105,8 @@ function animate(now) {
   const forward = keys.s ? 1 : keys.w ? -1 : joystickY;
   player.position.x += right * speed;
   player.position.z += forward * speed;
-  camera.position.lerp(new THREE.Vector3(player.position.x + 12, 12, player.position.z + 16), 0.08);
-  camera.lookAt(player.position.x, 0, player.position.z);
-  for (const pad of pads) if (!pad.userData.built && player.position.distanceTo(pad.position) < 2.2 && money >= pad.userData.cost) { money -= pad.userData.cost; moneyEl.textContent = money; pad.userData.built = true; pad.material.color.set(0x55bb77); pad.userData.action(); }
+  updateCamera();
+  for (const pad of pads) if (!pad.userData.built && player.position.distanceTo(pad.position) < 2.2 && money >= pad.userData.cost) { money -= pad.userData.cost; moneyEl.textContent = money; pad.userData.built = true; pad.material.color.set(0x55bb77); const before = scene.children.length; pad.userData.action(); scene.traverse(obj => { if (obj.isMesh && obj !== player && !cameraObstacles.includes(obj)) cameraObstacles.push(obj); }); }
   renderer.render(scene, camera);
 }
 requestAnimationFrame(animate);
