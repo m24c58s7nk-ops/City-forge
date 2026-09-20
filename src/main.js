@@ -43,6 +43,24 @@ renderer.domElement.addEventListener('wheel',e=>{distance=Math.max(7,Math.min(32
 renderer.domElement.addEventListener('touchstart',e=>{if(e.touches.length===2){pinchStart=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);pinchDistance=distance;}},{passive:true});
 renderer.domElement.addEventListener('touchmove',e=>{if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);distance=Math.max(7,Math.min(32,pinchDistance-(d-pinchStart)*.025));}},{passive:true});
 
-let last=performance.now(); function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;const speed=7*dt;const right=keys.d?1:keys.a?-1:joystickX,forward=keys.s?1:keys.w?-1:joystickY;player.position.x+=right*speed;player.position.z+=forward*speed;applyCamera();for(const pad of pads)if(!pad.userData.built&&player.position.distanceTo(pad.position)<2.2&&money>=pad.userData.cost){money-=pad.userData.cost;moneyEl.textContent=money;pad.userData.built=true;pad.material.color.set(0x55bb77);pad.userData.action();}renderer.render(scene,camera);}requestAnimationFrame(animate);
+let last=performance.now();
+function animate(now){
+  requestAnimationFrame(animate);
+  const dt=Math.min((now-last)/1000,.05); last=now;
+  const speed=7*dt;
+  let right=(keys.d?1:0)-(keys.a?1:0)+joystickX;
+  let forward=(keys.w?1:0)-(keys.s?1:0)-joystickY;
+  const length=Math.hypot(right,forward);
+  if(length>1){right/=length;forward/=length;}
+  const moveX=right*Math.cos(yaw)+forward*Math.sin(yaw);
+  const moveZ=right*Math.sin(yaw)-forward*Math.cos(yaw);
+  player.position.x+=moveX*speed;
+  player.position.z+=moveZ*speed;
+  if(length>.05)player.rotation.y=Math.atan2(moveX,moveZ);
+  applyCamera();
+  for(const pad of pads)if(!pad.userData.built&&player.position.distanceTo(pad.position)<2.2&&money>=pad.userData.cost){money-=pad.userData.cost;moneyEl.textContent=money;pad.userData.built=true;pad.material.color.set(0x55bb77);pad.userData.action();}
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
 setInterval(()=>{money+=population*2;moneyEl.textContent=money;},1000);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
