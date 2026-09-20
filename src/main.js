@@ -53,8 +53,8 @@ function animate(now){
   let forward=(keys.w?1:0)-(keys.s?1:0)-joystickY;
   const length=Math.hypot(right,forward);
   if(length>1){right/=length;forward/=length;}
-  const moveX=right*Math.cos(yaw)+forward*Math.sin(yaw);
-  const moveZ=-right*Math.sin(yaw)+forward*Math.cos(yaw);
+  const moveX=right*Math.cos(yaw)-forward*Math.sin(yaw);
+  const moveZ=-right*Math.sin(yaw)-forward*Math.cos(yaw);
   player.position.x+=moveX*speed;
   player.position.z+=moveZ*speed;
   if(length>.05)player.rotation.y=Math.atan2(moveX,moveZ);
