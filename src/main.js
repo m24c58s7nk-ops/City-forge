@@ -25,9 +25,7 @@ app.appendChild(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x668866, 2));
 const sun = new THREE.DirectionalLight(0xffffff, 2);
-sun.position.set(10, 20, 10);
-sun.castShadow = true;
-scene.add(sun);
+sun.position.set(10, 20, 10); sun.castShadow = true; scene.add(sun);
 
 function box(x, y, z, w, h, d, color) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color }));
@@ -54,24 +52,41 @@ const keys = {};
 addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
 addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-let joystickX = 0, joystickY = 0;
+let joystickX = 0, joystickY = 0, joystickActive = false, joystickPointer = null;
 const joystick = document.querySelector('#joystick');
 const knob = document.querySelector('#joystick-knob');
-let joystickActive = false;
-function moveJoystick(e) {
-  const touch = e.touches ? e.touches[0] : e;
+
+function updateJoystick(clientX, clientY) {
   const rect = joystick.getBoundingClientRect();
-  let x = touch.clientX - (rect.left + rect.width / 2);
-  let y = touch.clientY - (rect.top + rect.height / 2);
   const max = rect.width * 0.32;
+  let x = clientX - (rect.left + rect.width / 2);
+  let y = clientY - (rect.top + rect.height / 2);
   const length = Math.hypot(x, y);
   if (length > max) { x = x / length * max; y = y / length * max; }
-  joystickX = x / max; joystickY = y / max;
+  joystickX = x / max;
+  joystickY = y / max;
   knob.style.transform = `translate(${x}px, ${y}px)`;
 }
-joystick.addEventListener('touchstart', e => { joystickActive = true; moveJoystick(e); e.preventDefault(); }, { passive: false });
-joystick.addEventListener('touchmove', e => { if (joystickActive) moveJoystick(e); e.preventDefault(); }, { passive: false });
-['touchend', 'touchcancel'].forEach(type => joystick.addEventListener(type, () => { joystickActive = false; joystickX = joystickY = 0; knob.style.transform = 'translate(0, 0)'; }));
+
+joystick.addEventListener('pointerdown', e => {
+  joystickActive = true;
+  joystickPointer = e.pointerId;
+  joystick.setPointerCapture(e.pointerId);
+  updateJoystick(e.clientX, e.clientY);
+  e.preventDefault();
+});
+joystick.addEventListener('pointermove', e => {
+  if (joystickActive && e.pointerId === joystickPointer) updateJoystick(e.clientX, e.clientY);
+  e.preventDefault();
+});
+function releaseJoystick(e) {
+  if (e.pointerId === joystickPointer) {
+    joystickActive = false; joystickPointer = null; joystickX = 0; joystickY = 0;
+    knob.style.transform = 'translate(0, 0)';
+  }
+}
+joystick.addEventListener('pointerup', releaseJoystick);
+joystick.addEventListener('pointercancel', releaseJoystick);
 
 let last = performance.now();
 function animate(now) {
