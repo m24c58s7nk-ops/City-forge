@@ -1,26 +1,52 @@
 import * as THREE from 'three';
 import './style.css';
+
 const app=document.querySelector('#app');
-app.innerHTML=`<div id="main-menu"><div class="menu-brand">MY<span>RESTAURANT</span><small>BUILD • SERVE • GROW</small></div><button id="play-btn">OPEN RESTAURANT</button><button id="settings-btn">HOW TO PLAY</button><div id="menu-info"></div></div><div id="hud"><strong>MY RESTAURANT</strong><span>Cash: $<b>250</b></span><span>Guests: <b>0</b></span></div><div id="objective">PHASE 1: RESTAURANT FOUNDATION<br><small>Explore your new restaurant and check out the dining room.</small></div><div id="hint">WASD to move • Drag to look • Scroll to zoom</div>`;
-for(const id of ['hud','objective','hint'])document.querySelector('#'+id).style.display='none';let started=false;
+app.innerHTML=`<div id="main-menu"><div class="menu-brand">MY<span>RESTAURANT</span><small>BUILD • SERVE • GROW</small></div><button id="play-btn">OPEN RESTAURANT</button><button id="settings-btn">HOW TO PLAY</button><div id="menu-info"></div></div><div id="hud"><strong>MY RESTAURANT</strong><span>Cash: $<b>250</b></span><span>Guests: <b>0</b></span></div><div id="objective">PHASE 1: RESTAURANT FOUNDATION<br><small>Explore your new restaurant.</small></div><div id="hint">WASD / arrows to move • Drag to look • Scroll to zoom</div>`;
+for(const id of ['hud','objective','hint'])document.querySelector('#'+id).style.display='none';
+let started=false;
 document.querySelector('#play-btn').onclick=()=>{started=true;document.querySelector('#main-menu').classList.add('menu-hide');for(const id of ['hud','objective','hint'])document.querySelector('#'+id).style.display=id==='hud'?'flex':'block'};
-document.querySelector('#settings-btn').onclick=()=>document.querySelector('#menu-info').textContent='WASD moves. Drag to rotate. Explore the dining room, host stand, booths, and kitchen.';
-const scene=new THREE.Scene();scene.background=new THREE.Color(0xc4dce3);scene.fog=new THREE.Fog(0xc4dce3,48,120);const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,240);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;app.appendChild(renderer.domElement);scene.add(new THREE.HemisphereLight(0xfff4df,0x52634e,2.4));const sun=new THREE.DirectionalLight(0xffdfad,3);sun.position.set(-25,45,20);sun.castShadow=true;scene.add(sun);
-const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7});function cube(p,s,c,rot=0){const m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.position.set(...p);m.rotation.y=rot;m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}function cyl(p,r,h,c){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),mat(c));m.position.set(...p);m.castShadow=true;scene.add(m);return m}
-// Grounds and polished restaurant shell
-cube([0,-.5,0],[60,1,60],0x789b68);cube([0,0,0],[22,.2,18],0xd5b98b);cube([0,3,-5],[22,6,.4],0x6d432e);cube([-10,3,2],[.4,6,14],0x6d432e);cube([10,3,2],[.4,6,14],0x6d432e);cube([0,6,2],[22,.4,14],0x3d2922);cube([0,7,-5.25],[13,1.3,.25],0x2c211c);cube([0,3.4,-5.45],[4,.25,.25],0xf0c66a);
-// Tall windows and warm lighting accents
-for(const x of[-7,-3,3,7]){cube([x,3.5,-5.23],[1.8,3.4,.08],0x8fc5cf);cube([x,3.5,-5.3],[.08,3.4,.12],0xf5d28a)}
-// Host stand / reception inspired entrance
-cube([0,1.25,-2.9],[3.2,2.3,1.1],0x8b5637);cube([0,2.45,-2.9],[3.5,.18,1.25],0xd9a85b);cube([0,2.9,-2.93],[2.5,.55,.12],0x35251f);cube([0,3.15,-3.02],[1.9,.3,.08],0xf2c86c);
-function table(x,z,booth=false){cube([x,1.35,z],[2.6,.18,1.6],0x9b633e);cyl([x,.65,z],.18,1.3,0x493326);for(const dx of[-1,1])for(const dz of[-.75,.75]){cube([x+dx*1.15,.5,z+dz*.8],[.7,.85,.7],booth?0x6e4937:0x8b6a4d)}if(booth){cube([x,1.3,z-1.05],[2.8,1.8,.35],0x74452f);cube([x,1.3,z+1.05],[2.8,1.8,.35],0x74452f)}}
-for(const p of[[-6,1],[-2,1],[3,1],[7,1],[-6,5],[-2,5],[3,5],[7,5]])table(...p,false);table(-7,9,true);table(0,9,true);table(7,9,true);
-// Kitchen service line with counters, stove, sink, shelves
-cube([6,1.2,6],[6,2.2,2.2],0x50585b);cube([6,2.45,6],[6.2,.18,2.3],0xd5b27b);for(const x of[4,5.5,7]){cyl([x,2.65,6],.35,.12,0x24282b);cyl([x,2.78,6],.13,.18,0xeeeeee)}cube([6,4.1,6],[6,2.2,.25],0x65452f);for(const x of[4,5.5,7])cube([x,4.1,5.8],[.9,.9,.12],0x9e754b);
-// Decorative plants, lamps, menu boards
-for(const x of[-8,-4,4,8]){cyl([x,4.9,-4.7],.08,1.5,0x33251e);cyl([x,4.05,-4.7],.35,.2,0xf3c56b)}cube([-7,4.3,5.1],[3,.9,.12],0x2c211c);cube([0,4.3,5.1],[3,.9,.12],0x2c211c);cube([7,4.3,5.1],[3,.9,.12],0x2c211c);
-function tree(x,z){cyl([x,1,z],.28,2,0x62452f);cyl([x,2.7,z],1.25,2.2,0x3f754d)}for(const p of[[-15,-9],[15,-9],[-15,13],[15,13]])tree(...p);
-// Player avatar
-const player=new THREE.Group();player.position.set(0,0,15);scene.add(player);function part(g,p,c){const m=new THREE.Mesh(g,mat(c));m.position.set(...p);player.add(m)}part(new THREE.CapsuleGeometry(.45,.85,8,16),[0,1.15,0],0x315fbd);part(new THREE.SphereGeometry(.42,20,16),[0,2.2,0],0xe8b58c);part(new THREE.SphereGeometry(.45,20,12),[0,2.4,0],0x34251d);
-const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);let yaw=.2,pitch=.65,distance=23,look=false,lx=0,ly=0;renderer.domElement.onpointerdown=e=>{if(started){look=true;lx=e.clientX;ly=e.clientY}};renderer.domElement.onpointermove=e=>{if(look){yaw-=(e.clientX-lx)*.006;pitch=THREE.MathUtils.clamp(pitch-(e.clientY-ly)*.006,.2,1.3);lx=e.clientX;ly=e.clientY}};renderer.domElement.onpointerup=()=>look=false;renderer.domElement.onwheel=e=>distance=THREE.MathUtils.clamp(distance+e.deltaY*.02,9,40);
-function animate(){requestAnimationFrame(animate);const dt=.016;let r=(keys.d?1:0)-(keys.a?1:0),f=(keys.w?1:0)-(keys.s?1:0);if(started){const mx=r*Math.cos(yaw)-f*Math.sin(yaw),mz=-r*Math.sin(yaw)-f*Math.cos(yaw);player.position.x=THREE.MathUtils.clamp(player.position.x+mx*7*dt,-9.2,9.2);player.position.z=THREE.MathUtils.clamp(player.position.z+mz*7*dt,-1,16);if(r||f)player.rotation.y=Math.atan2(mx,mz)}const t=new THREE.Vector3(player.position.x,1.3,player.position.z),h=Math.cos(pitch)*distance;camera.position.lerp(new THREE.Vector3(t.x+Math.sin(yaw)*h,t.y+Math.sin(pitch)*distance,t.z+Math.cos(yaw)*h),.14);camera.lookAt(t);renderer.render(scene,camera)}animate();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+document.querySelector('#settings-btn').onclick=()=>document.querySelector('#menu-info').textContent='Move around the restaurant, inspect the seating area, and explore the kitchen.';
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xb9dce8);
+scene.fog=new THREE.Fog(0xb9dce8,55,115);
+const camera=new THREE.OrthographicCamera(-14,14,10,-10,.1,180);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;app.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xfff5dc,0x78906d,2.8));
+const sun=new THREE.DirectionalLight(0xffe0aa,3.2);sun.position.set(-20,35,18);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
+const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.8});
+function cube(p,s,c,rot=0){const m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat(c));m.position.set(...p);m.rotation.y=rot;m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+function cyl(p,r,h,c,segments=16){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,segments),mat(c));m.position.set(...p);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+function sign(text,x,z,color=0xf6c766){const board=cube([x,4.4,z],[3,.8,.12],0x70472e);const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff4cf';ctx.font='bold 48px Arial';ctx.textAlign='center';ctx.fillText(text,256,80);const tex=new THREE.CanvasTexture(canvas);const m=new THREE.Mesh(new THREE.PlaneGeometry(2.8,.7),new THREE.MeshBasicMaterial({map:tex,transparent:true}));m.position.set(x,4.4,z-.08);m.rotation.y=Math.PI;scene.add(m);return board}
+
+// My Perfect Hotel-inspired presentation: bright low-poly, compact isometric floor plan, open front, chunky colorful furniture.
+cube([0,-.65,0],[70,1,70],0x78a86b);
+cube([0,-.08,0],[24,.22,20],0xe7c995);
+// Back and side walls, leaving the front open for an easy-to-read management view.
+cube([0,3,-9.7],[24,7,.5],0xf4dfb5);
+cube([-11.7,3,-1],[.5,7,17.5],0xf4dfb5);
+cube([11.7,3,-1],[.5,7,17.5],0xf4dfb5);
+cube([0,6,-1],[24,.35,17],0xd8b47d);
+// Large colorful windows.
+for(const x of[-8,-4,0,4,8]){cube([x,3.8,-9.42],[3.1,3.2,.08],0x8ed0dc);cube([x,3.8,-9.5],[.1,3.2,.12],0xffe2a0)}
+// Entrance and reception counter.
+cube([0,1.15,-6.9],[4.2,2.1,1.15],0xd18a4d);cube([0,2.3,-6.9],[4.5,.2,1.3],0xffd47b);cube([0,2.72,-6.95],[2.7,.5,.12],0x6b4029);sign('WELCOME',0,-7.52);
+function table(x,z,booth=false){cube([x,1.25,z],[2.5,.18,1.45],booth?0xb87943:0xd39a59);cyl([x,.65,z],.17,1.2,0x70472e);for(const dx of[-1,1])for(const dz of[-.72,.72])cube([x+dx*1.05,.5,z+dz*.78],[.68,.8,.68],booth?0x9b5f3d:0xf0c47a)}
+for(const p of[[-7,-2],[-2,-2],[3,-2],[8,-2],[-7,2],[-2,2],[3,2],[8,2]])table(...p);
+for(const p of[[-7,7],[0,7],[7,7]])table(...p,true);
+// Kitchen at the rear right, built from simple chunky stations.
+cube([7,1.25,6],[7,2.3,2.8],0x7d8586);cube([7,2.55,6],[7.2,.2,2.9],0xf0c98b);for(const x of[4.8,6.4,8]){cyl([x,2.75,6],.38,.12,0x30363a,20);cyl([x,2.9,6],.14,.2,0xece6d6,16)}cube([7,4.25,6],[7,2.2,.25],0x9c653c);sign('KITCHEN',7,4.45);
+// Plants and warm hanging lamps.
+function plant(x,z){cyl([x,.8,z],.3,1.6,0x9a633e);cyl([x,2,z],1.05,1.7,0x5b9b58);cyl([x,2.8,z],.65,1.1,0x78b967)}
+for(const p of[[-10,-8],[10,-8],[-10,8],[10,8]])plant(...p);
+for(const x of[-8,-4,0,4,8]){cyl([x,5.2,-4.8],.07,1.4,0x59402c);cyl([x,4.45,-4.8],.38,.22,0xffd66f)}
+// Outdoor low-poly trees.
+function tree(x,z){cyl([x,1,z],.3,2,0x765033);cyl([x,2.8,z],1.25,2.3,0x4f8d50);cyl([x,4,z],.85,1.5,0x71ad5c)}for(const p of[[-16,-10],[16,-10],[-16,12],[16,12]])tree(...p);
+// Simple low-poly player.
+const player=new THREE.Group();player.position.set(0,0,14);scene.add(player);function part(g,p,c){const m=new THREE.Mesh(g,mat(c));m.position.set(...p);m.castShadow=true;player.add(m)}part(new THREE.CapsuleGeometry(.45,.85,6,12),[0,1.15,0],0x3978c9);part(new THREE.SphereGeometry(.42,16,12),[0,2.2,0],0xe8b58c);part(new THREE.SphereGeometry(.45,16,10),[0,2.42,0],0x34251d);
+const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+let yaw=.65,distance=23,look=false,lx=0,ly=0;
+renderer.domElement.onpointerdown=e=>{if(started){look=true;lx=e.clientX;ly=e.clientY}};renderer.domElement.onpointermove=e=>{if(look){yaw-=(e.clientX-lx)*.006;lx=e.clientX;ly=e.clientY}};renderer.domElement.onpointerup=()=>look=false;renderer.domElement.onpointercancel=()=>look=false;renderer.domElement.onwheel=e=>distance=THREE.MathUtils.clamp(distance+e.deltaY*.02,15,34);
+function animate(){requestAnimationFrame(animate);const dt=.016;let r=(keys.d?1:0)-(keys.a?1:0)+(keys.arrowright?1:0)-(keys.arrowleft?1:0),f=(keys.w?1:0)-(keys.s?1:0)+(keys.arrowup?1:0)-(keys.arrowdown?1:0);if(started){const mx=r*Math.cos(yaw)-f*Math.sin(yaw),mz=-r*Math.sin(yaw)-f*Math.cos(yaw);player.position.x=THREE.MathUtils.clamp(player.position.x+mx*7*dt,-10,10);player.position.z=THREE.MathUtils.clamp(player.position.z+mz*7*dt,-1,16);if(r||f)player.rotation.y=Math.atan2(mx,mz)}const target=new THREE.Vector3(player.position.x,0,player.position.z);const h=distance*.72;camera.position.lerp(new THREE.Vector3(target.x+Math.sin(yaw)*h,target.y+distance*.95,target.z+Math.cos(yaw)*h),.12);camera.lookAt(target);camera.zoom=THREE.MathUtils.clamp(25/distance,.75,1.5);camera.updateProjectionMatrix();renderer.render(scene,camera)}animate();addEventListener('resize',()=>{const a=innerWidth/innerHeight;camera.left=-14*a;camera.right=14*a;camera.top=10;camera.bottom=-10;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
