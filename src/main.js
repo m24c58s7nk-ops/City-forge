@@ -4,9 +4,9 @@ import './style.css';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xb9dff2);
 
-// Nearly top-down management-game camera, like looking straight down at 12 o'clock.
+// Slightly more angled management-game camera, around the 11:15–11:30 direction.
 const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(0, 40, 8);
+camera.position.set(0, 34, 15);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
