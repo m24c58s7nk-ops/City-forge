@@ -6,8 +6,8 @@ scene.background = new THREE.Color(0xc7e6f7);
 scene.fog = new THREE.Fog(0xc7e6f7, 55, 115);
 
 const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 250);
-camera.position.set(0, 42, 18);
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 18, 14);
+camera.lookAt(0, 1, 5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -67,7 +67,6 @@ cube([6.6,.14,1.9],[0,1.0,11.4],0xd9a16a);
 cube([1.2,.12,.8],[-2.2,1.18,11.4],0xeee1c8,{roughness:.45});
 cube([1.2,.12,.8],[2.2,1.18,11.4],0xeee1c8,{roughness:.45});
 label('RESERVATIONS',[0,2.15,11.4]);
-// Entrance mat and a small host queue area.
 cube([10,.04,3.2],[0,.03,13.0],0x9c6b4b,{castShadow:false});
 cube([6,.05,.12],[0,.08,12.0],0xf4d39b,{castShadow:false});
 
@@ -76,33 +75,27 @@ const kitchenX = -11;
 const kitchenZ = -8.5;
 cube([11.5,.12,9.0],[kitchenX,.08,kitchenZ],0xb7a08a,{castShadow:false});
 label('KITCHEN',[kitchenX,4.0,kitchenZ]);
-// Stainless prep line along the back wall.
 cube([10.2,1.15,.9],[kitchenX,1.0,-11.8],0x687783,{roughness:.4});
 cube([10.4,.12,1.0],[kitchenX,1.65,-11.8],0xd9e1e5,{roughness:.3});
 for (const x of [-15,-12.3,-9.6,-6.9]) {
   cube([2.1,.12,.7],[x,1.78,-11.8],0xf1f4f5,{roughness:.25});
   cylinder(.28,.08,[x,1.88,-11.8],0x424b52);
 }
-// Cooking range and ovens.
 for (const x of [-14.5,-11.8,-9.1]) {
   cube([2.2,1.8,1.7],[x,1.0,-8.8],0x59636b,{roughness:.35});
   cube([1.65,.06,.75],[x,1.55,-7.9],0x252b30,{roughness:.25});
   for (const dx of [-.48,.48]) cylinder(.18,.06,[x+dx,1.94,-8.8],0x20252a);
 }
-// Refrigerator/freezer and tall storage units.
 cube([2.1,3.4,2.0],[-6.2,1.8,-9.5],0xd5dde1,{roughness:.3});
 cube([1.7,.06,.08],[-6.2,2.1,-8.48],0x69747b,{roughness:.3});
 cube([1.7,.06,.08],[-6.2,1.35,-8.48],0x69747b,{roughness:.3});
-// Wall shelves with supplies.
 for (const y of [2.5,3.35]) {
   cube([8.8,.16,.55],[-11,y,-7.0],0x8a5a39);
   for (const x of [-14.5,-12.5,-10.5,-8.5]) cylinder(.22,.45,[x,y+.28,-7.0],0xd7a56d,16);
 }
-// Dishwashing station and sink.
 cube([4.2,1.15,1.4],[-14.2,1.0,-5.7],0x77858c,{roughness:.35});
 cube([2.2,.12,.8],[-14.2,1.62,-5.7],0xcfd9de,{roughness:.25});
 cylinder(.42,.1,[-14.2,1.72,-5.7],0x3c474e);
-// Kitchen pass-through counter facing the dining room.
 cube([10.5,1.1,.8],[-6.8,1.0,-3.9],0x9a6945);
 cube([10.7,.12,.9],[-6.8,1.62,-3.9],0xe2b57e);
 label('SERVICE PASS',[ -6.8,2.35,-3.9]);
@@ -128,5 +121,11 @@ function updateCustomer(c,dt) { const d=c.userData; d.timer+=dt; if(d.state==='s
 const keys={}; window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')interact();}); window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const hud=document.createElement('div'); hud.style.cssText='position:fixed;top:18px;left:18px;padding:14px 18px;border-radius:14px;background:rgba(24,35,48,.88);color:white;font:600 16px Arial;line-height:1.65;z-index:5;box-shadow:0 5px 18px #0003'; document.body.appendChild(hud);
 let last=performance.now();
-function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-12,12);customers.slice().forEach(c=>updateCustomer(c,dt));hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Reservations or Service Pass</small>`;renderer.render(scene,camera);}
+function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-12,12);customers.slice().forEach(c=>updateCustomer(c,dt));
+  // Closer, elevated third-person framing like a mobile restaurant-management game.
+  const target = new THREE.Vector3(player.position.x, 0.8, player.position.z);
+  const desiredCamera = new THREE.Vector3(player.position.x, 17, player.position.z + 11);
+  camera.position.lerp(desiredCamera, 0.08);
+  camera.lookAt(target);
+  hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Reservations or Service Pass</small>`;renderer.render(scene,camera);}
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}); animate();
