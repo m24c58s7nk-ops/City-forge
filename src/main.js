@@ -44,13 +44,6 @@ function cylinder(radius, height, position, color, segments = 24) {
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, segments), material(color));
   mesh.position.set(...position); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); return mesh;
 }
-function label(text, position, color = '#fff') {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
-  const x = c.getContext('2d'); x.fillStyle = 'rgba(25,35,45,.88)'; x.beginPath(); x.roundRect(4,4,504,120,22); x.fill();
-  x.font = 'bold 50px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = color; x.fillText(text,256,64);
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }));
-  sprite.scale.set(4.5, 1.12, 1); sprite.position.set(...position); scene.add(sprite); return sprite;
-}
 
 cube([35,0.5,27],[0,-0.25,0],0xe7d1b1,{castShadow:false});
 cube([35.2,7,.7],[0,3.5,-13.6],0xf2d5aa); cube([35.2,7,.7],[0,3.5,13.6],0xf2d5aa);
@@ -63,14 +56,12 @@ cube([7,.9,2.2],[0,.45,11.4],0x8f5b38);
 cube([6.6,.14,1.9],[0,1.0,11.4],0xd9a16a);
 cube([1.2,.12,.8],[-2.2,1.18,11.4],0xeee1c8,{roughness:.45});
 cube([1.2,.12,.8],[2.2,1.18,11.4],0xeee1c8,{roughness:.45});
-label('RESERVATIONS',[0,2.15,11.4]);
 cube([10,.04,3.2],[0,.03,13.0],0x9c6b4b,{castShadow:false});
 cube([6,.05,.12],[0,.08,12.0],0xf4d39b,{castShadow:false});
 
 const kitchenX = -11;
 const kitchenZ = -8.5;
 cube([11.5,.12,9.0],[kitchenX,.08,kitchenZ],0xb7a08a,{castShadow:false});
-label('KITCHEN',[kitchenX,4.0,kitchenZ]);
 cube([10.2,1.15,.9],[kitchenX,1.0,-11.8],0x687783,{roughness:.4});
 cube([10.4,.12,1.0],[kitchenX,1.65,-11.8],0xd9e1e5,{roughness:.3});
 for (const x of [-15,-12.3,-9.6,-6.9]) {
@@ -94,7 +85,6 @@ cube([2.2,.12,.8],[-14.2,1.62,-5.7],0xcfd9de,{roughness:.25});
 cylinder(.42,.1,[-14.2,1.72,-5.7],0x3c474e);
 cube([10.5,1.1,.8],[-6.8,1.0,-3.9],0x9a6945);
 cube([10.7,.12,.9],[-6.8,1.62,-3.9],0xe2b57e);
-label('SERVICE PASS',[-6.8,2.35,-3.9]);
 
 const tables = [];
 for (const x of [-3,4.5,12]) for (const z of [-1,5,9]) {
@@ -105,7 +95,7 @@ for (const x of [-3,4.5,12]) for (const z of [-1,5,9]) {
   tables.push({x,z,occupied:false});
 }
 
-const player = cube([.8,1.6,.8],[0,.9,7],0x4d78d4); label('YOU',[0,2.2,7],'#9ed0ff');
+const player = cube([.8,1.6,.8],[0,.9,7],0x4d78d4);
 const customers = []; let money = 0, reputation = 0, completedOrders = 0, activeTask = 'Take an order';
 function createCustomer(t) { const c = cube([.75,1.45,.75],[t.x,.8,t.z],0xe88b7a); c.userData={table:t,state:'seated',timer:0}; customers.push(c); t.occupied=true; activeTask='Prepare a meal'; }
 function spawnCustomer() { const t=tables.find(t=>!t.occupied); if(t) createCustomer(t); }
