@@ -52,45 +52,81 @@ function label(text, position, color = '#fff') {
   sprite.scale.set(4.5, 1.12, 1); sprite.position.set(...position); scene.add(sprite); return sprite;
 }
 
-// Spacious, polished restaurant environment.
+// Restaurant shell: guest entrance at the front, dining room in the center, kitchen in the rear corner.
 cube([35,0.5,27],[0,-0.25,0],0xe7d1b1,{castShadow:false});
 cube([35.2,7,.7],[0,3.5,-13.6],0xf2d5aa); cube([35.2,7,.7],[0,3.5,13.6],0xf2d5aa);
 cube([.7,7,26.5],[-17.1,3.5,0],0xf2d5aa); cube([.7,7,26.5],[17.1,3.5,0],0xf2d5aa);
 cube([35.2,.6,1.5],[0,6.7,-13.9],0xd69b60); cube([35.2,.6,1.5],[0,6.7,13.9],0xd69b60);
 cube([1.5,.6,26.5],[-16.9,6.7,0],0xd69b60); cube([1.5,.6,26.5],[16.9,6.7,0],0xd69b60);
 
-// Decorative floor strips for a more finished mobile-management-game look.
 for (const z of [-10,-5,0,5,10]) cube([34,.025,.08],[0,.03,z],0xd4b994,{castShadow:false});
 
-// Detailed kitchen with counters, appliances, shelves and warm accents.
-cube([11,1.15,3.2],[0,1.1,-4],0x8b5b3b); label('KITCHEN',[0,3.2,-4]);
-for (const x of [-4,-1.35,1.35,4]) { cube([2.1,.18,1.9],[x,1.78,-4],0xc8d1d6); cylinder(.35,.12,[x,1.9,-4],0xeeeeee); }
-cube([10.5,2.5,.35],[0,2.8,-5.45],0x6e4933); cube([10.5,.25,.35],[0,4.05,-5.45],0xdca66d);
-for (const x of [-4,-1.3,1.3,4]) cube([.12,1.8,.12],[x,3.1,-5.25],0xf4c77f);
+// FRONT OF HOUSE: reservation/check-in desk near the main entrance.
+cube([7,.9,2.2],[0,.45,11.4],0x8f5b38);
+cube([6.6,.14,1.9],[0,1.0,11.4],0xd9a16a);
+cube([1.2,.12,.8],[-2.2,1.18,11.4],0xeee1c8,{roughness:.45});
+cube([1.2,.12,.8],[2.2,1.18,11.4],0xeee1c8,{roughness:.45});
+label('RESERVATIONS',[0,2.15,11.4]);
+// Entrance mat and a small host queue area.
+cube([10,.04,3.2],[0,.03,13.0],0x9c6b4b,{castShadow:false});
+cube([6,.05,.12],[0,.08,12.0],0xf4d39b,{castShadow:false});
 
-// Reservation and entrance desks.
-cube([5.5,.85,2],[0,.45,-11.5],0x98653f); cube([5.1,.12,1.65],[0,.95,-11.5],0xd8a36c); label('RESERVATIONS',[0,2.05,-11.5]);
-cube([5.5,.85,2],[0,.45,11.5],0x98653f); cube([5.1,.12,1.65],[0,.95,11.5],0xd8a36c); label('ENTRANCE',[0,2.05,11.5]);
+// BACK CORNER KITCHEN: separated work zones like a real restaurant kitchen.
+const kitchenX = -11;
+const kitchenZ = -8.5;
+cube([11.5,.12,9.0],[kitchenX,.08,kitchenZ],0xb7a08a,{castShadow:false});
+label('KITCHEN',[kitchenX,4.0,kitchenZ]);
+// Stainless prep line along the back wall.
+cube([10.2,1.15,.9],[kitchenX,1.0,-11.8],0x687783,{roughness:.4});
+cube([10.4,.12,1.0],[kitchenX,1.65,-11.8],0xd9e1e5,{roughness:.3});
+for (const x of [-15,-12.3,-9.6,-6.9]) {
+  cube([2.1,.12,.7],[x,1.78,-11.8],0xf1f4f5,{roughness:.25});
+  cylinder(.28,.08,[x,1.88,-11.8],0x424b52);
+}
+// Cooking range and ovens.
+for (const x of [-14.5,-11.8,-9.1]) {
+  cube([2.2,1.8,1.7],[x,1.0,-8.8],0x59636b,{roughness:.35});
+  cube([1.65,.06,.75],[x,1.55,-7.9],0x252b30,{roughness:.25});
+  for (const dx of [-.48,.48]) cylinder(.18,.06,[x+dx,1.94,-8.8],0x20252a);
+}
+// Refrigerator/freezer and tall storage units.
+cube([2.1,3.4,2.0],[-6.2,1.8,-9.5],0xd5dde1,{roughness:.3});
+cube([1.7,.06,.08],[-6.2,2.1,-8.48],0x69747b,{roughness:.3});
+cube([1.7,.06,.08],[-6.2,1.35,-8.48],0x69747b,{roughness:.3});
+// Wall shelves with supplies.
+for (const y of [2.5,3.35]) {
+  cube([8.8,.16,.55],[-11,y,-7.0],0x8a5a39);
+  for (const x of [-14.5,-12.5,-10.5,-8.5]) cylinder(.22,.45,[x,y+.28,-7.0],0xd7a56d,16);
+}
+// Dishwashing station and sink.
+cube([4.2,1.15,1.4],[-14.2,1.0,-5.7],0x77858c,{roughness:.35});
+cube([2.2,.12,.8],[-14.2,1.62,-5.7],0xcfd9de,{roughness:.25});
+cylinder(.42,.1,[-14.2,1.72,-5.7],0x3c474e);
+// Kitchen pass-through counter facing the dining room.
+cube([10.5,1.1,.8],[-6.8,1.0,-3.9],0x9a6945);
+cube([10.7,.12,.9],[-6.8,1.62,-3.9],0xe2b57e);
+label('SERVICE PASS',[ -6.8,2.35,-3.9]);
 
+// Dining room tables and chairs remain in the open central/front area.
 const tables = [];
-for (const x of [-11,-5.5,0,5.5,11]) for (const z of [-8,2,8]) {
+for (const x of [-3,4.5,12]) for (const z of [-1,5,9]) {
   cube([3.2,.28,2.5],[x,.3,z],0xb8754b);
   cube([2.35,1.05,1.7],[x,1,z],0xf0bd78);
   cylinder(.22,1.05,[x,.65,z],0x9a633f);
-  for (const dx of [-1.15,1.15]) for (const dz of [-.8,.8]) { cube([.5,.7,.5],[x+dx,.48,z+dz],0x7b8f9b); }
+  for (const dx of [-1.15,1.15]) for (const dz of [-.8,.8]) cube([.5,.7,.5],[x+dx,.48,z+dz],0x7b8f9b);
   tables.push({x,z,occupied:false});
 }
 
-const player = cube([.8,1.6,.8],[0,.9,10],0x4d78d4); label('YOU',[0,2.2,10],'#9ed0ff');
+const player = cube([.8,1.6,.8],[0,.9,7],0x4d78d4); label('YOU',[0,2.2,7],'#9ed0ff');
 const customers = []; let money = 0, reputation = 0, completedOrders = 0, activeTask = 'Take an order';
 function createCustomer(t) { const c = cube([.75,1.45,.75],[t.x,.8,t.z],0xe88b7a); c.userData={table:t,state:'seated',timer:0}; customers.push(c); t.occupied=true; activeTask='Prepare a meal'; }
 function spawnCustomer() { const t=tables.find(t=>!t.occupied); if(t) createCustomer(t); }
 function near(p,d=2.5) { return Math.hypot(player.position.x-p.x,player.position.z-p.z)<d; }
-function interact() { if(near({x:0,z:-11.5},3)){spawnCustomer();return;} if(near({x:0,z:-4},3)){const c=customers.find(c=>c.userData.state==='seated');if(c){c.userData.state='served';c.userData.timer=0;c.material.color.set(0x83c995);activeTask='Collect payment';}} }
+function interact() { if(near({x:0,z:11.4},3)){spawnCustomer();return;} if(near({x:-6.8,z:-3.9},4)){const c=customers.find(c=>c.userData.state==='seated');if(c){c.userData.state='served';c.userData.timer=0;c.material.color.set(0x83c995);activeTask='Collect payment';}} }
 function updateCustomer(c,dt) { const d=c.userData; d.timer+=dt; if(d.state==='served'&&d.timer>4){money+=25;reputation++;completedOrders++;d.table.occupied=false;scene.remove(c);customers.splice(customers.indexOf(c),1);activeTask='Take an order';} }
 
 const keys={}; window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')interact();}); window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const hud=document.createElement('div'); hud.style.cssText='position:fixed;top:18px;left:18px;padding:14px 18px;border-radius:14px;background:rgba(24,35,48,.88);color:white;font:600 16px Arial;line-height:1.65;z-index:5;box-shadow:0 5px 18px #0003'; document.body.appendChild(hud);
 let last=performance.now();
-function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-12,12);customers.slice().forEach(c=>updateCustomer(c,dt));hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Reservations or Kitchen</small>`;renderer.render(scene,camera);}
+function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-12,12);customers.slice().forEach(c=>updateCustomer(c,dt));hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Reservations or Service Pass</small>`;renderer.render(scene,camera);}
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}); animate();
