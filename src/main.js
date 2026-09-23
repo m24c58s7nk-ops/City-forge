@@ -52,16 +52,13 @@ function label(text, position, color = '#fff') {
   sprite.scale.set(4.5, 1.12, 1); sprite.position.set(...position); scene.add(sprite); return sprite;
 }
 
-// Restaurant shell: guest entrance at the front, dining room in the center, kitchen in the rear corner.
 cube([35,0.5,27],[0,-0.25,0],0xe7d1b1,{castShadow:false});
 cube([35.2,7,.7],[0,3.5,-13.6],0xf2d5aa); cube([35.2,7,.7],[0,3.5,13.6],0xf2d5aa);
 cube([.7,7,26.5],[-17.1,3.5,0],0xf2d5aa); cube([.7,7,26.5],[17.1,3.5,0],0xf2d5aa);
 cube([35.2,.6,1.5],[0,6.7,-13.9],0xd69b60); cube([35.2,.6,1.5],[0,6.7,13.9],0xd69b60);
 cube([1.5,.6,26.5],[-16.9,6.7,0],0xd69b60); cube([1.5,.6,26.5],[16.9,6.7,0],0xd69b60);
-
 for (const z of [-10,-5,0,5,10]) cube([34,.025,.08],[0,.03,z],0xd4b994,{castShadow:false});
 
-// FRONT OF HOUSE: reservation/check-in desk near the main entrance.
 cube([7,.9,2.2],[0,.45,11.4],0x8f5b38);
 cube([6.6,.14,1.9],[0,1.0,11.4],0xd9a16a);
 cube([1.2,.12,.8],[-2.2,1.18,11.4],0xeee1c8,{roughness:.45});
@@ -70,7 +67,6 @@ label('RESERVATIONS',[0,2.15,11.4]);
 cube([10,.04,3.2],[0,.03,13.0],0x9c6b4b,{castShadow:false});
 cube([6,.05,.12],[0,.08,12.0],0xf4d39b,{castShadow:false});
 
-// BACK CORNER KITCHEN: separated work zones like a real restaurant kitchen.
 const kitchenX = -11;
 const kitchenZ = -8.5;
 cube([11.5,.12,9.0],[kitchenX,.08,kitchenZ],0xb7a08a,{castShadow:false});
@@ -98,9 +94,8 @@ cube([2.2,.12,.8],[-14.2,1.62,-5.7],0xcfd9de,{roughness:.25});
 cylinder(.42,.1,[-14.2,1.72,-5.7],0x3c474e);
 cube([10.5,1.1,.8],[-6.8,1.0,-3.9],0x9a6945);
 cube([10.7,.12,.9],[-6.8,1.62,-3.9],0xe2b57e);
-label('SERVICE PASS',[ -6.8,2.35,-3.9]);
+label('SERVICE PASS',[-6.8,2.35,-3.9]);
 
-// Dining room tables and chairs remain in the open central/front area.
 const tables = [];
 for (const x of [-3,4.5,12]) for (const z of [-1,5,9]) {
   cube([3.2,.28,2.5],[x,.3,z],0xb8754b);
@@ -119,13 +114,39 @@ function interact() { if(near({x:0,z:11.4},3)){spawnCustomer();return;} if(near(
 function updateCustomer(c,dt) { const d=c.userData; d.timer+=dt; if(d.state==='served'&&d.timer>4){money+=25;reputation++;completedOrders++;d.table.occupied=false;scene.remove(c);customers.splice(customers.indexOf(c),1);activeTask='Take an order';} }
 
 const keys={}; window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')interact();}); window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+// iPad/mobile joystick.
+const joystick = document.createElement('div');
+joystick.id = 'joystick';
+joystick.innerHTML = '<div id="joystick-knob"></div>';
+document.body.appendChild(joystick);
+const knob = joystick.querySelector('#joystick-knob');
+const joystickVector = { x: 0, y: 0 };
+let joystickPointer = null;
+function updateJoystick(clientX, clientY) {
+  const rect = joystick.getBoundingClientRect();
+  const radius = rect.width / 2;
+  let x = clientX - (rect.left + radius);
+  let y = clientY - (rect.top + radius);
+  const distance = Math.hypot(x, y);
+  const max = radius - 34;
+  if (distance > max) { x = x / distance * max; y = y / distance * max; }
+  joystickVector.x = x / max;
+  joystickVector.y = y / max;
+  knob.style.transform = `translate(${x}px, ${y}px)`;
+}
+function resetJoystick() { joystickPointer = null; joystickVector.x = 0; joystickVector.y = 0; knob.style.transform = 'translate(0px, 0px)'; }
+joystick.addEventListener('pointerdown', e => { joystickPointer = e.pointerId; joystick.setPointerCapture(e.pointerId); updateJoystick(e.clientX, e.clientY); e.preventDefault(); });
+joystick.addEventListener('pointermove', e => { if (e.pointerId === joystickPointer) updateJoystick(e.clientX, e.clientY); });
+joystick.addEventListener('pointerup', resetJoystick);
+joystick.addEventListener('pointercancel', resetJoystick);
+
 const hud=document.createElement('div'); hud.style.cssText='position:fixed;top:18px;left:18px;padding:14px 18px;border-radius:14px;background:rgba(24,35,48,.88);color:white;font:600 16px Arial;line-height:1.65;z-index:5;box-shadow:0 5px 18px #0003'; document.body.appendChild(hud);
 let last=performance.now();
-function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-12,12);customers.slice().forEach(c=>updateCustomer(c,dt));
-  // Closer, elevated third-person framing like a mobile restaurant-management game.
+function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;const moveX=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joystickVector.x;const moveZ=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joystickVector.y;if(moveX||moveZ){const length=Math.hypot(moveX,moveZ);player.position.x+=moveX/Math.max(length,1)*speed;player.position.z+=moveZ/Math.max(length,1)*speed;}player.position.x=THREE.MathUtils.clamp(player.position.x,-15.5,15.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-12,12);customers.slice().forEach(c=>updateCustomer(c,dt));
   const target = new THREE.Vector3(player.position.x, 0.8, player.position.z);
   const desiredCamera = new THREE.Vector3(player.position.x, 17, player.position.z + 11);
   camera.position.lerp(desiredCamera, 0.08);
   camera.lookAt(target);
-  hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Reservations or Service Pass</small>`;renderer.render(scene,camera);}
+  hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>Joystick / WASD to move<br>E near Reservations or Service Pass</small>`;renderer.render(scene,camera);}
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}); animate();
