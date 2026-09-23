@@ -4,9 +4,10 @@ import './style.css';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xb9dff2);
 
-// Third-person restaurant camera: behind and above the player, not a flat top-down view.
-const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 200);
-const cameraOffset = new THREE.Vector3(0, 13, 16);
+// Elevated angled overview camera, similar to a management-game view.
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 32, 27);
+camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -21,10 +22,10 @@ function label(text, position, color='#fff') { const c=document.createElement('c
 cube([25,0.5,19],[0,-0.25,0],0xe8cfa5);
 cube([25.2,7,.7],[0,3.5,-9.6],0xf4d6a0); cube([25.2,7,.7],[0,3.5,9.6],0xf4d6a0);
 cube([.7,7,18.5],[-12.1,3.5,0],0xf4d6a0); cube([.7,7,18.5],[12.1,3.5,0],0xf4d6a0);
-// Open cutaway roof.
+// Open cutaway roof so the restaurant interior remains visible.
 cube([25.2,.6,1.5],[0,6.7,-9.9],0xd89b58); cube([25.2,.6,1.5],[0,6.7,9.9],0xd89b58); cube([1.5,.6,18.5],[-11.9,6.7,0],0xd89b58); cube([1.5,.6,18.5],[11.9,6.7,0],0xd89b58);
 
-// Restaurant-only stations: no hotel reception desk.
+// Restaurant-only stations.
 cube([8,1.2,2],[0,1.1,-2],0x8b5e3c); label('KITCHEN',[0,3.2,-2]);
 cube([1.2,2.4,7],[-7,1.2,6],0x6e9bcb); cube([1.2,2.4,7],[7,1.2,6],0x6e9bcb);
 cube([4,.8,1.5],[0,.4,-8.2],0x9b6b43); label('ORDER HERE',[0,2,-8.2]);
@@ -39,5 +40,5 @@ function interact(){if(near({x:0,z:-8.2},3)){spawnCustomer();return;}if(near({x:
 function updateCustomer(c,dt){const d=c.userData;d.timer+=dt;if(d.state==='served'&&d.timer>4){money+=25;reputation++;completedOrders++;d.table.occupied=false;scene.remove(c);customers.splice(customers.indexOf(c),1);activeTask='Take an order';}}
 const keys={};window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e')interact();});window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const hud=document.createElement('div');hud.style.cssText='position:fixed;top:18px;left:18px;padding:14px 18px;border-radius:14px;background:rgba(24,35,48,.88);color:white;font:600 16px Arial;line-height:1.65;z-index:5;box-shadow:0 5px 18px #0003';document.body.appendChild(hud);
-let last=performance.now();function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-10.5,10.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-8,8);customers.slice().forEach(c=>updateCustomer(c,dt));const target=player.position.clone();target.y=0;camera.position.copy(player.position).add(cameraOffset);camera.lookAt(target);hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Order Here or Kitchen</small>`;renderer.render(scene,camera);}
+let last=performance.now();function animate(now=performance.now()){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.1);last=now;const speed=dt*5.5;if(keys.w||keys.arrowup)player.position.z-=speed;if(keys.s||keys.arrowdown)player.position.z+=speed;if(keys.a||keys.arrowleft)player.position.x-=speed;if(keys.d||keys.arrowright)player.position.x+=speed;player.position.x=THREE.MathUtils.clamp(player.position.x,-10.5,10.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-8,8);customers.slice().forEach(c=>updateCustomer(c,dt));hud.innerHTML=`🍽️ <b>MY RESTAURANT</b><br>💰 Money: $${money}<br>⭐ Reputation: ${reputation}<br>📋 Orders served: ${completedOrders}<br><br>🎯 <b>${activeTask}</b><br><small>WASD / arrows to move<br>E near Order Here or Kitchen</small>`;renderer.render(scene,camera);}
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});animate();
